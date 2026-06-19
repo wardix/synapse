@@ -1,8 +1,8 @@
-const getApiUrl = () => {
+export const getApiUrl = () => {
   return import.meta.env.VITE_API_URL || ''
 }
 
-const getHeaders = () => {
+export const getHeaders = () => {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   }
