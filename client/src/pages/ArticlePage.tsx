@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import type { Article } from '../../../shared/types'
 import { get } from '../api/client'
+import { MarkdownRenderer } from '../components/MarkdownRenderer'
 import { TagPill } from '../components/TagPill'
 import './article-page.css'
 
@@ -54,33 +55,6 @@ export function ArticlePage() {
     year: 'numeric',
   })
 
-  const renderMarkdown = (text: string) => {
-    const paragraphs = text.split('\n\n')
-    return paragraphs.map((p, idx) => {
-      const isHeader = p.startsWith('#')
-      if (isHeader) {
-        const levelMatch = p.match(/^#+/)
-        const level = levelMatch ? levelMatch[0].length : 1
-        const content = p.replace(/^#+\s/, '')
-        const Tag = `h${Math.min(level, 6)}` as keyof JSX.IntrinsicElements
-        // biome-ignore lint/suspicious/noArrayIndexKey: simple markdown renderer
-        return <Tag key={idx}>{content}</Tag>
-      }
-      return (
-        // biome-ignore lint/suspicious/noArrayIndexKey: simple markdown renderer
-        <p key={idx}>
-          {p.split('\n').map((line, i) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: simple markdown renderer
-            <span key={i}>
-              {line}
-              {i < p.split('\n').length - 1 && <br />}
-            </span>
-          ))}
-        </p>
-      )
-    })
-  }
-
   return (
     <article className="article-page">
       <header className="article-header">
@@ -119,7 +93,9 @@ export function ArticlePage() {
         </div>
       </header>
 
-      <div className="article-content">{renderMarkdown(article.content)}</div>
+      <div className="article-content">
+        <MarkdownRenderer content={article.content} />
+      </div>
     </article>
   )
 }

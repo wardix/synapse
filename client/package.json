@@ -10,13 +10,21 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "dompurify": "^3.4.11",
+    "katex": "^0.17.0",
+    "marked": "^18.0.5",
+    "mermaid": "^11.15.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
-    "react-router-dom": "^7.18.0"
+    "react-router-dom": "^7.18.0",
+    "shiki": "^4.2.0"
   },
   "devDependencies": {
     "@happy-dom/global-registrator": "^20.10.6",
     "@testing-library/react": "^16.3.2",
+    "@types/dompurify": "^3.2.0",
+    "@types/katex": "^0.16.8",
+    "@types/marked": "^6.0.0",
     "@types/node": "^24.12.3",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
