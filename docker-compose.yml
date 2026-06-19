@@ -3,21 +3,44 @@ services:
     image: pgvector/pgvector:pg16
     container_name: synapse-db
     restart: unless-stopped
-    ports:
-      - "5432:5432"
     environment:
-      POSTGRES_USER: synapse
-      POSTGRES_PASSWORD: synapse
-      POSTGRES_DB: synapse
+      POSTGRES_USER: ${POSTGRES_USER:-synapse}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-synapse}
+      POSTGRES_DB: ${POSTGRES_DB:-synapse}
     volumes:
       - synapse_pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U synapse -d synapse"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-synapse} -d ${POSTGRES_DB:-synapse}"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
+    networks:
+      - synapse_network
+
+  app:
+    build: .
+    container_name: synapse-app
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://${POSTGRES_USER:-synapse}:${POSTGRES_PASSWORD:-synapse}@postgres:5432/${POSTGRES_DB:-synapse}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      PORT: 3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - synapse_network
 
 volumes:
   synapse_pgdata:
     driver: local
+
+networks:
+  synapse_network:
+    driver: bridge

@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { serveStatic } from 'hono/bun'
 import { corsMiddleware } from './middleware/cors'
 import {
   authRateLimiter,
@@ -67,7 +68,24 @@ app.route('/api/search', searchRoute)
 app.route('/api/semantic-index', semanticIndex)
 app.route('/api/chat', chatRoute)
 
-const port = Number(process.env.SERVER_PORT) || 3000
+// Static file serving and SPA fallback for production
+if (
+  process.env.NODE_ENV === 'production' ||
+  process.env.BUN_ENV === 'production'
+) {
+  app.use('/*', serveStatic({ root: './client/dist' }))
+
+  // SPA fallback
+  app.get('*', async (c, next) => {
+    if (c.req.path.startsWith('/api/')) {
+      return next()
+    }
+    const html = await Bun.file('./client/dist/index.html').text()
+    return c.html(html)
+  })
+}
+
+const port = Number(process.env.PORT || process.env.SERVER_PORT) || 3000
 
 if (import.meta.main) {
   console.log(`Server running on port ${port}`)
