@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { corsMiddleware } from './middleware/cors'
+import articlesRoute from './routes/articles'
 import authRoute from './routes/auth'
 import healthRoute from './routes/health'
 
@@ -34,6 +35,7 @@ app.notFound((c) => {
 // Mount routes
 app.route('/api/health', healthRoute)
 app.route('/api/auth', authRoute)
+app.route('/api/articles', articlesRoute)
 
 const port = Number(process.env.SERVER_PORT) || 3000
 
