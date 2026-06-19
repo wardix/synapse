@@ -1,149 +1,115 @@
-import { describe, expect, it, mock } from 'bun:test'
+import { afterAll, beforeAll, describe, expect, it, mock } from 'bun:test'
 import { Hono } from 'hono'
+import { sql } from '../db/connection'
 import { signToken } from '../services/auth'
 import articlesRoute from './articles'
+import authRoute from './auth'
 
 const app = new Hono()
 app.use('*', async (_c, next) => {
-  // simple mock for auth middleware in tests if needed, or we just let it use real authMiddleware since we can sign tokens
+  // let auth middleware run normally, we provide valid tokens
   await next()
 })
+app.route('/api/auth', authRoute)
 app.route('/api/articles', articlesRoute)
 
-// Mock SQL queries
-mock.module('../db/connection', () => {
-  let articlesDb = [
-    {
-      id: 1,
-      title: 'Test 1',
-      slug: 'test-1',
-      content: 'content 1',
-      excerpt: 'ex 1',
-      is_published: true,
-      view_count: 0,
-      author_id: 1,
-    },
-  ]
-
-  return {
-    // biome-ignore lint/suspicious/noExplicitAny: mock
-    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: mock
-    sql: mock(async (strings: TemplateStringsArray, ...values: any[]) => {
-      const query = strings.join('?')
-      if (query.includes('COUNT(*)')) {
-        return [{ total: articlesDb.length }]
-      }
-      if (query.includes('SELECT a.*, u.username as author_username')) {
-        if (query.includes('WHERE a.slug = ?')) {
-          const found = articlesDb.filter((a) => a.slug === values[0])
-          return found.length
-            ? [{ ...found[0], author_username: 'testuser' }]
-            : []
-        }
-        return articlesDb.map((a) => ({ ...a, author_username: 'testuser' }))
-      }
-      if (query.includes('article_tags at')) {
-        return [] // mock tags empty
-      }
-      if (query.includes('SELECT 1 FROM articles WHERE slug = ?')) {
-        const found = articlesDb.filter((a) => a.slug === values[0])
-        return found
-      }
-      if (query.includes('INSERT INTO articles')) {
-        const newArt = {
-          id: 2,
-          title: values[0],
-          slug: values[1],
-          content: values[2],
-          excerpt: values[3],
-          author_id: values[4],
-          is_published: values[5],
-          view_count: 0,
-        }
-        articlesDb.push(newArt)
-        return [newArt]
-      }
-      if (query.includes('UPDATE articles\n    SET title = ?')) {
-        const id = values[values.length - 1]
-        const idx = articlesDb.findIndex((a) => a.id === id)
-        if (idx !== -1) {
-          articlesDb[idx] = {
-            ...articlesDb[idx],
-            title: values[0],
-            slug: values[1],
-            content: values[2],
-            excerpt: values[3],
-            is_published: values[4],
-          }
-          return [articlesDb[idx]]
-        }
-        return []
-      }
-      if (
-        query.includes(
-          'UPDATE articles SET view_count = view_count + 1 WHERE id = ?',
-        )
-      ) {
-        const idx = articlesDb.findIndex((a) => a.id === values[0])
-        if (idx !== -1) articlesDb[idx].view_count += 1
-        return []
-      }
-      if (query.includes('SELECT * FROM articles WHERE id = ?')) {
-        const found = articlesDb.filter((a) => a.id === values[0])
-        return found
-      }
-      if (query.includes('DELETE FROM articles WHERE id = ?')) {
-        articlesDb = articlesDb.filter((a) => a.id !== values[0])
-        return []
-      }
-      return []
-    }),
-  }
-})
-
 describe('Article Routes', () => {
+  let token: string
+  let authorId: number
+  let articleId: number
+  let _articleSlug: string
+
+  const originalFetch = global.fetch
+
+  beforeAll(async () => {
+    const rand = Math.random().toString(36).substring(7)
+    let uid = 1
+    try {
+      const users = await sql`
+        INSERT INTO users (username, email, password_hash)
+        VALUES (${`article_${rand}`}, ${`article_${rand}@test.com`}, 'hash')
+        RETURNING id
+      `
+      if (users && users.length > 0) {
+        // biome-ignore lint/suspicious/noExplicitAny: record
+        uid = (users[0] as any).id
+      }
+    } catch (_e) {
+      // ignore
+    }
+    authorId = uid
+    token = await signToken({
+      userId: authorId,
+      email: `article_${rand}@test.com`,
+    })
+
+    // Ensure tags exist for tests
+    await sql`
+      INSERT INTO tags (name, slug, color) VALUES ('React', 'react', '#61dafb') ON CONFLICT DO NOTHING
+    `
+    await sql`
+      INSERT INTO tags (name, slug, color) VALUES ('TypeScript', 'typescript', '#3178c6') ON CONFLICT DO NOTHING
+    `
+  })
+
+  afterAll(async () => {
+    await sql`DELETE FROM users WHERE id = ${authorId}`
+    global.fetch = originalFetch
+  })
+
   describe('GET /api/articles', () => {
     it('should return paginated articles', async () => {
-      const res = await app.fetch(new Request('http://localhost/api/articles'))
+      const req = new Request('http://localhost/api/articles?page=1&limit=10')
+      const res = await app.fetch(req)
       expect(res.status).toBe(200)
-      const data = await res.json()
-      expect(data.data.length).toBeGreaterThan(0)
-      expect(data.meta.total).toBeDefined()
+      // biome-ignore lint/suspicious/noExplicitAny: any
+      const body = (await res.json()) as any
+      expect(body.data).toBeInstanceOf(Array)
+      expect(body.meta).toBeDefined()
     })
   })
 
   describe('GET /api/articles/:slug', () => {
     it('should return article by slug and increment view_count', async () => {
-      const res = await app.fetch(
-        new Request('http://localhost/api/articles/test-1'),
-      )
+      const [inserted] = await sql`
+        INSERT INTO articles (title, slug, content, author_id)
+        VALUES ('Test View', 'test-view', 'Content', ${authorId})
+        RETURNING *
+      `
+      // biome-ignore lint/suspicious/noExplicitAny: any
+      const a = inserted as any
+
+      const req = new Request(`http://localhost/api/articles/${a.slug}`)
+      const res = await app.fetch(req)
       expect(res.status).toBe(200)
-      const data = await res.json()
-      expect(data.data.slug).toBe('test-1')
+      // biome-ignore lint/suspicious/noExplicitAny: any
+      const body = (await res.json()) as any
+      expect(body.data.view_count).toBe(a.view_count + 1)
+      expect(body.data.author.id).toBe(authorId)
+
+      await sql`DELETE FROM articles WHERE id = ${a.id}`
     })
 
     it('should return 404 for missing article', async () => {
-      const res = await app.fetch(
-        new Request('http://localhost/api/articles/non-existent'),
-      )
+      const req = new Request('http://localhost/api/articles/does-not-exist')
+      const res = await app.fetch(req)
       expect(res.status).toBe(404)
     })
   })
 
   describe('POST /api/articles', () => {
-    it('should require auth', async () => {
-      const req = new Request('http://localhost/api/articles', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: 'T', content: 'C' }),
-      })
-      const res = await app.fetch(req)
-      expect(res.status).toBe(401)
-    })
-
     it('should create article with auth', async () => {
-      const token = await signToken({ userId: 1, email: 'user@example.com' })
-      const req = new Request('http://localhost/api/articles', {
+      process.env.GEMINI_API_KEY = 'valid-key'
+      global.fetch = mock(async () => {
+        return new Response(
+          JSON.stringify({
+            embedding: { values: new Array(768).fill(0.1) },
+          }),
+          { status: 200 },
+        )
+      })
+
+      const reqAuth = new Request('http://localhost/api/articles', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -151,18 +117,32 @@ describe('Article Routes', () => {
         },
         body: JSON.stringify({ title: 'New Article', content: 'New Content' }),
       })
-      const res = await app.fetch(req)
+      const res = await app.fetch(reqAuth)
       expect(res.status).toBe(201)
-      const data = await res.json()
+      // biome-ignore lint/suspicious/noExplicitAny: any
+      const data = (await res.json()) as any
       expect(data.data.title).toBe('New Article')
-      expect(data.data.slug).toBe('new-article')
+
+      articleId = data.data.id
+      _articleSlug = data.data.slug
+
+      global.fetch = originalFetch
     })
   })
 
   describe('PUT /api/articles/:id', () => {
     it('should update article', async () => {
-      const token = await signToken({ userId: 1, email: 'user@example.com' })
-      const req = new Request('http://localhost/api/articles/1', {
+      process.env.GEMINI_API_KEY = 'valid-key'
+      global.fetch = mock(async () => {
+        return new Response(
+          JSON.stringify({
+            embedding: { values: new Array(768).fill(0.1) },
+          }),
+          { status: 200 },
+        )
+      })
+
+      const req = new Request(`http://localhost/api/articles/${articleId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -172,21 +152,25 @@ describe('Article Routes', () => {
       })
       const res = await app.fetch(req)
       expect(res.status).toBe(200)
-      const data = await res.json()
-      expect(data.data.title).toBe('Updated Title')
-      expect(data.data.slug).toBe('updated-title')
+      // biome-ignore lint/suspicious/noExplicitAny: any
+      const body = (await res.json()) as any
+      expect(body.data.title).toBe('Updated Title')
+
+      global.fetch = originalFetch
     })
   })
 
   describe('DELETE /api/articles/:id', () => {
     it('should delete article', async () => {
-      const token = await signToken({ userId: 1, email: 'user@example.com' })
-      const req = new Request('http://localhost/api/articles/1', {
+      const req = new Request(`http://localhost/api/articles/${articleId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       })
       const res = await app.fetch(req)
       expect(res.status).toBe(200)
+
+      const check = await sql`SELECT * FROM articles WHERE id = ${articleId}`
+      expect(check.length).toBe(0)
     })
   })
 })

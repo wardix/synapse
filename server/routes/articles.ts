@@ -7,6 +7,7 @@ import type {
 import { sql } from '../db/connection'
 import { type AuthVariables, authMiddleware } from '../middleware/auth'
 import { verifyToken } from '../services/auth'
+import { generateEmbedding } from '../services/embedding'
 import { generateSlug } from '../utils/slug'
 
 const articlesRoute = new Hono<{ Variables: AuthVariables }>()
@@ -189,6 +190,21 @@ articlesRoute.post('/', authMiddleware, async (c) => {
     }
   }
 
+  try {
+    const embedding = await generateEmbedding(article.title)
+    const [entry] = await sql`
+      INSERT INTO semantic_index (content, embedding)
+      VALUES (${article.title}, ${JSON.stringify(embedding)}::vector)
+      RETURNING id
+    `
+    await sql`
+      INSERT INTO article_semantic_index (article_id, semantic_index_id)
+      VALUES (${article.id}, ${entry.id})
+    `
+  } catch (error) {
+    console.error('Failed to auto-embed article title:', error)
+  }
+
   return c.json({ data: article }, 201)
 })
 
@@ -233,6 +249,37 @@ articlesRoute.put('/:id', authMiddleware, async (c) => {
     await sql`DELETE FROM article_tags WHERE article_id = ${id}`
     for (const tagId of body.tag_ids) {
       await sql`INSERT INTO article_tags (article_id, tag_id) VALUES (${id}, ${tagId})`
+    }
+  }
+
+  if (body.title && body.title !== current.title) {
+    try {
+      // biome-ignore lint/suspicious/noExplicitAny: record type
+      const existingLink = await sql<any[]>`
+        SELECT semantic_index_id FROM article_semantic_index WHERE article_id = ${id}
+      `
+      const embedding = await generateEmbedding(body.title)
+
+      if (existingLink.length > 0) {
+        await sql`
+          UPDATE semantic_index
+          SET content = ${body.title}, embedding = ${JSON.stringify(embedding)}::vector
+          WHERE id = ${existingLink[0].semantic_index_id}
+        `
+      } else {
+        // biome-ignore lint/suspicious/noExplicitAny: record type
+        const [entry] = await sql<any[]>`
+          INSERT INTO semantic_index (content, embedding)
+          VALUES (${body.title}, ${JSON.stringify(embedding)}::vector)
+          RETURNING id
+        `
+        await sql`
+          INSERT INTO article_semantic_index (article_id, semantic_index_id)
+          VALUES (${id}, ${entry.id})
+        `
+      }
+    } catch (error) {
+      console.error('Failed to auto-embed article title update:', error)
     }
   }
 
