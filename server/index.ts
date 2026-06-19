@@ -1,5 +1,11 @@
 import { Hono } from 'hono'
 import { corsMiddleware } from './middleware/cors'
+import {
+  authRateLimiter,
+  chatRateLimiter,
+  generalRateLimiter,
+  searchRateLimiter,
+} from './middleware/rate-limit'
 import articlesRoute from './routes/articles'
 import authRoute from './routes/auth'
 import { chatRoute } from './routes/chat'
@@ -43,6 +49,17 @@ app.notFound((c) => {
 
 // Mount routes
 app.route('/api/health', healthRoute)
+
+// Apply category-specific rate limits before mounting routes
+app.use('/api/auth/*', authRateLimiter)
+app.use('/api/chat/*', chatRateLimiter)
+app.use('/api/search/*', searchRateLimiter)
+
+// Apply general rate limit to other routes
+app.use('/api/articles/*', generalRateLimiter)
+app.use('/api/tags/*', generalRateLimiter)
+app.use('/api/semantic-index/*', generalRateLimiter)
+
 app.route('/api/auth', authRoute)
 app.route('/api/articles', articlesRoute)
 app.route('/api/tags', tagsRoute)
