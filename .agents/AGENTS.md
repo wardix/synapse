@@ -8,7 +8,7 @@
 
 Before starting any work, read these documents:
 - **PRD**: [PRD.md](file:///Users/wiliam/agy/kb/PRD.md) — Product requirements, user stories, data model, and UI pages
-- **Architecture Plan**: [ARCHITECTURE.md](file:///Users/wiliam/.gemini/antigravity-cli/brain/0ca16ba0-3bf5-4923-8096-da482b1ac1d1/architecture_plan.md) — Tech stack, project structure, database schema, API endpoints, and implementation phases
+- **Architecture Plan**: [ARCHITECTURE.md](file:///Users/wiliam/agy/kb/ARCHITECTURE.md) — Tech stack, project structure, database schema, API endpoints, and implementation phases
 
 ---
 
@@ -25,6 +25,7 @@ Before starting any work, read these documents:
 | **LLM** | Google Gemini API (`gemini-2.5-flash`) |
 | **Auth** | JWT-based (bcrypt + jose) |
 | **Styling** | Vanilla CSS |
+| **Testing** | `bun:test` (built-in) |
 
 ---
 
@@ -64,6 +65,14 @@ kb/
 │
 └── shared/                    # Shared between server & client
     └── types.ts               # API request/response types
+```
+
+Tests live **next to the code** they test:
+```
+server/routes/articles.ts       → server/routes/articles.test.ts
+server/services/search.ts       → server/services/search.test.ts
+client/src/utils/markdown.ts    → client/src/utils/markdown.test.ts
+client/src/hooks/useAuth.ts     → client/src/hooks/useAuth.test.ts
 ```
 
 - **`server/`** — All backend code. Hono routes, database operations, embedding/LLM services, and auth middleware.
@@ -159,6 +168,21 @@ kb/
 - Use React Router for routing. All route definitions in `App.tsx`.
 - Dark mode is the default theme.
 
+### Testing (TDD)
+
+- **Test-Driven Development is mandatory** — always write tests **before** implementation.
+- Follow the **RED → GREEN → REFACTOR** cycle:
+  1. **RED** — Write a failing test that describes the expected behavior.
+  2. **GREEN** — Write the minimum code to make the test pass.
+  3. **REFACTOR** — Clean up the code while keeping all tests green.
+- Test runner: **`bun:test`** (built-in, no additional dependencies).
+- Test files live next to the code they test with `.test.ts` / `.test.tsx` suffix.
+- Every route, service, and utility function **must have corresponding tests**.
+- Test API routes using Hono's `app.fetch()` — no need to start a real server.
+- Use `mock()` from `bun:test` for mocking dependencies.
+- Run tests: `bun test` (all), `bun test --watch` (watch mode).
+- **A feature is not complete until all its tests pass.**
+
 ### Git
 
 - **Conventional Commits** for all commit messages:
@@ -184,6 +208,9 @@ kb/
 - **Follow the standard response format** (`{ data, error, meta }`) for all API responses.
 - **Create new migration files** for schema changes — use the next sequential number.
 - **Use vanilla CSS** for all styling.
+- **Write tests FIRST** before implementing any feature (TDD).
+- **Run `bun test`** before committing to ensure nothing is broken.
+- **Test every route** for correct status codes, response format, validation, and auth.
 
 ### ❌ Don't
 
@@ -197,3 +224,6 @@ kb/
 - **DON'T** use `var` — use `const` or `let`.
 - **DON'T** commit `.env` files or API keys to version control.
 - **DON'T** use Node.js APIs when Bun equivalents exist (e.g., use `Bun.sql` not `pg`).
+- **DON'T** write implementation code without writing a failing test first.
+- **DON'T** skip tests — every route, service, and utility must be tested.
+- **DON'T** commit code with failing tests.
