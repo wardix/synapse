@@ -4,17 +4,22 @@ import type {
   SemanticIndexEntry,
 } from '../../shared/types'
 import { sql } from '../db/connection'
-import { authMiddleware } from '../middleware/auth'
 import { generateEmbedding } from '../services/embedding'
+import {
+  validateArray,
+  validatePagination,
+  validateString,
+} from '../utils/validate'
 
 const semanticIndex = new Hono()
 
 semanticIndex.use('*', authMiddleware)
 
 semanticIndex.get('/', async (c) => {
-  const page = Number(c.req.query('page') || '1')
-  const limit = Number(c.req.query('limit') || '20')
-  const offset = (page - 1) * limit
+  const { page, limit, offset } = validatePagination(
+    c.req.query('page'),
+    c.req.query('limit'),
+  )
 
   const entries = await sql<SemanticIndexEntry[]>`
     SELECT 
@@ -55,28 +60,28 @@ semanticIndex.get('/', async (c) => {
 
 semanticIndex.post('/', async (c) => {
   const body = await c.req.json<CreateSemanticIndexRequest>()
-  if (
-    !body.content ||
-    typeof body.content !== 'string' ||
-    body.content.trim() === ''
-  ) {
+  if (!body.content) {
     return c.json({ data: null, error: 'Content is required' }, 400)
   }
+  const content = validateString(body.content, {
+    minLength: 1,
+    maxLength: 10000,
+    fieldName: 'content',
+  })
+  const article_ids = body.article_ids
+    ? validateArray(body.article_ids, { fieldName: 'article_ids' })
+    : undefined
 
-  const embedding = await generateEmbedding(body.content)
+  const embedding = await generateEmbedding(content)
 
   const [entry] = await sql<SemanticIndexEntry[]>`
     INSERT INTO semantic_index (content, embedding)
-    VALUES (${body.content}, ${JSON.stringify(embedding)}::vector)
+    VALUES (${content}, ${JSON.stringify(embedding)}::vector)
     RETURNING id, content, created_at
   `
 
-  if (
-    body.article_ids &&
-    Array.isArray(body.article_ids) &&
-    body.article_ids.length > 0
-  ) {
-    for (const articleId of body.article_ids) {
+  if (article_ids && article_ids.length > 0) {
+    for (const articleId of article_ids) {
       await sql`
         INSERT INTO article_semantic_index (article_id, semantic_index_id)
         VALUES (${articleId}, ${entry.id})

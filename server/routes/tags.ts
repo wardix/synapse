@@ -7,6 +7,7 @@ import type {
 import { sql } from '../db/connection'
 import { type AuthVariables, authMiddleware } from '../middleware/auth'
 import { generateSlug } from '../utils/slug'
+import { validateColor, validateString } from '../utils/validate'
 
 const tagsRoute = new Hono<{ Variables: AuthVariables }>()
 
@@ -17,15 +18,16 @@ tagsRoute.get('/', async (c) => {
 
 tagsRoute.post('/', authMiddleware, async (c) => {
   const body = await c.req.json<CreateTagRequest>()
-  const { name, color } = body
-
-  if (!name || name.trim() === '') {
+  if (!body.name) {
     return c.json({ data: null, error: 'Name is required' }, 400)
   }
 
-  if (color && !/^#([0-9A-Fa-f]{3}){1,2}$/.test(color)) {
-    return c.json({ data: null, error: 'Invalid color format' }, 400)
-  }
+  const name = validateString(body.name, {
+    minLength: 1,
+    maxLength: 100,
+    fieldName: 'name',
+  })
+  const color = body.color ? validateColor(body.color, 'color') : undefined
 
   const existing = await sql`SELECT 1 FROM tags WHERE name = ${name}`
   if (existing.length > 0) {
@@ -58,9 +60,15 @@ tagsRoute.put('/:id', authMiddleware, async (c) => {
   // biome-ignore lint/suspicious/noExplicitAny: pg record
   const current = existing[0] as any
 
-  const name = body.name || current.name
+  const name = body.name
+    ? validateString(body.name, {
+        minLength: 1,
+        maxLength: 100,
+        fieldName: 'name',
+      })
+    : current.name
   let slug = current.slug
-  if (body.name && body.name !== current.name) {
+  if (body.name && name !== current.name) {
     const duplicate =
       await sql`SELECT 1 FROM tags WHERE name = ${name} AND id != ${id}`
     if (duplicate.length > 0) {
@@ -72,10 +80,12 @@ tagsRoute.put('/:id', authMiddleware, async (c) => {
     slug = await generateSlug(name, 'tags')
   }
 
-  const color = body.color !== undefined ? body.color : current.color
-  if (color && !/^#([0-9A-Fa-f]{3}){1,2}$/.test(color)) {
-    return c.json({ data: null, error: 'Invalid color format' }, 400)
-  }
+  const color =
+    body.color !== undefined
+      ? body.color
+        ? validateColor(body.color, 'color')
+        : null
+      : current.color
 
   const updated = await sql`
     UPDATE tags

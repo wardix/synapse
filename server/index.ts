@@ -7,6 +7,7 @@ import healthRoute from './routes/health'
 import searchRoute from './routes/search'
 import semanticIndex from './routes/semantic-index'
 import tagsRoute from './routes/tags'
+import { ValidationError } from './utils/validate'
 
 const app = new Hono()
 
@@ -15,6 +16,10 @@ app.use('*', corsMiddleware)
 
 // Error Handling Middleware
 app.onError((err, c) => {
+  if (err instanceof ValidationError) {
+    return c.json({ data: null, error: err.message }, 400)
+  }
+
   console.error('Unhandled error:', err)
   return c.json(
     {
