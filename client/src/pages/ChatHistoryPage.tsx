@@ -1,4 +1,4 @@
-export default function ChatHistoryPage() {
+export function ChatHistoryPage() {
   return (
     <div className="page-container">
       <div className="glass-panel">

@@ -1,4 +1,4 @@
-export default function SearchPage() {
+export function SearchPage() {
   return (
     <div className="page-container">
       <div className="glass-panel">

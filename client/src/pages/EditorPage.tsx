@@ -1,4 +1,4 @@
-export default function EditorPage() {
+export function EditorPage() {
   return (
     <div className="page-container">
       <div className="glass-panel">

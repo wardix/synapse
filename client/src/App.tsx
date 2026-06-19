@@ -1,14 +1,14 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import ArticlePage from './pages/ArticlePage'
-import ChatHistoryPage from './pages/ChatHistoryPage'
-import ChatPage from './pages/ChatPage'
-import EditorPage from './pages/EditorPage'
-import HomePage from './pages/HomePage'
-import LoginPage from './pages/LoginPage'
-import SearchPage from './pages/SearchPage'
-import SemanticIndexPage from './pages/SemanticIndexPage'
+import { ArticlePage } from './pages/ArticlePage'
+import { ChatHistoryPage } from './pages/ChatHistoryPage'
+import { ChatPage } from './pages/ChatPage'
+import { EditorPage } from './pages/EditorPage'
+import { HomePage } from './pages/HomePage'
+import { LoginPage } from './pages/LoginPage'
+import { SearchPage } from './pages/SearchPage'
+import { SemanticIndexPage } from './pages/SemanticIndexPage'
 
-function App() {
+export function App() {
   return (
     <BrowserRouter>
       <Routes>
@@ -25,5 +25,3 @@ function App() {
     </BrowserRouter>
   )
 }
-
-export default App
