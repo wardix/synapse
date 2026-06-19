@@ -1,13 +1,11 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.0/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.0/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
     "useIgnoreFile": true
   },
-  "organizeImports": {
-    "enabled": true
-  },
+  "assist": { "actions": { "source": { "organizeImports": "on" } } },
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
@@ -47,7 +45,7 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
       "complexity": {
         "noExcessiveCognitiveComplexity": {
           "level": "warn",
@@ -71,23 +69,24 @@
         "useConst": "error",
         "useImportType": "error",
         "useNodejsImportProtocol": "off",
-        "useTemplate": "error",
-        "noVar": "error"
+        "useTemplate": "error"
       },
       "suspicious": {
         "noConsole": "off",
         "noExplicitAny": "error",
-        "noDoubleEquals": "error"
+        "noDoubleEquals": "error",
+        "noVar": "error"
       }
     }
   },
   "files": {
-    "ignore": [
-      "node_modules",
-      "dist",
-      "*.min.js",
-      "*.min.css",
-      "coverage"
+    "includes": [
+      "**",
+      "!**/node_modules",
+      "!**/dist",
+      "!**/*.min.js",
+      "!**/*.min.css",
+      "!**/coverage"
     ]
   }
 }
