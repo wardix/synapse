@@ -21,6 +21,8 @@ export function App() {
             <Route path="/search" element={<SearchPage />} />
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/chat/history" element={<ChatHistoryPage />} />
+            <Route path="/editor" element={<EditorPage />} />
+            <Route path="/editor/:id" element={<EditorPage />} />
             <Route path="/articles/new" element={<EditorPage />} />
             <Route path="/articles/:id/edit" element={<EditorPage />} />
             <Route path="/articles/:slug" element={<ArticlePage />} />

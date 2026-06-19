@@ -1,0 +1,112 @@
+.editor-page {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 80px);
+  padding: 1.5rem;
+}
+
+.editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.editor-title-input {
+  font-size: 1.5rem;
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  outline: none;
+  width: 100%;
+  max-width: 500px;
+}
+
+.editor-title-input::placeholder {
+  color: var(--text-muted);
+}
+
+.editor-controls {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.tags-select {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--glass-border);
+  color: var(--text);
+  padding: 0.5rem;
+  border-radius: 6px;
+  outline: none;
+}
+
+.publish-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.save-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.5rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.save-btn:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+.save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.editor-split-pane {
+  display: flex;
+  flex: 1;
+  gap: 1.5rem;
+  overflow: hidden;
+}
+
+.editor-pane,
+.preview-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.preview-pane {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 2rem;
+  overflow-y: auto;
+  backdrop-filter: blur(10px);
+}
+
+@media (max-width: 768px) {
+  .editor-split-pane {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .editor-pane,
+  .preview-pane {
+    flex: none;
+    height: 500px;
+  }
+}
