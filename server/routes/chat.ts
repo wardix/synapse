@@ -168,3 +168,79 @@ chatRoute.get('/:id', authMiddleware, async (c) => {
     return c.json({ data: null, error: 'Failed to fetch chat detail' }, 500)
   }
 })
+
+chatRoute.post('/:id/promote', authMiddleware, async (c) => {
+  // biome-ignore lint/suspicious/noExplicitAny: auth middleware
+  const user = (c.get as any)('user') as { userId: number }
+  const chatId = Number(c.req.param('id'))
+  const body = await c.req.json<{ article_ids?: number[] }>().catch(() => null)
+
+  if (
+    !body?.article_ids ||
+    !Array.isArray(body.article_ids) ||
+    body.article_ids.length === 0
+  ) {
+    return c.json(
+      { data: null, error: 'article_ids must be a non-empty array' },
+      400,
+    )
+  }
+
+  try {
+    // 1. Get the chat question
+    const chatMessages = await sql`
+      SELECT question FROM chat_messages
+      WHERE id = ${chatId} AND user_id = ${user.userId}
+    `
+    if (chatMessages.length === 0) {
+      return c.json({ data: null, error: 'Chat message not found' }, 404)
+    }
+    const question = chatMessages[0].question
+
+    // 2. Validate article IDs exist
+    const uniqueArticleIds = [...new Set(body.article_ids)]
+    const articles = await sql`
+      SELECT id FROM articles WHERE id IN ${sql(uniqueArticleIds)}
+    `
+    if (articles.length !== uniqueArticleIds.length) {
+      return c.json(
+        { data: null, error: 'One or more article_ids are invalid' },
+        400,
+      )
+    }
+
+    // 3. Generate embedding for the question
+    const { generateEmbedding } = await import('../services/embedding')
+    const embedding = await generateEmbedding(question)
+    const embeddingString = `[${embedding.join(',')}]`
+
+    // 4. Wrap inserts in a transaction (Bun.sql handles multiple statements if awaited sequentially, or use transaction)
+    // Using transaction
+    const newEntry = await sql.begin(async (tx) => {
+      // Insert semantic_index entry
+      const [insertedEntry] = await tx`
+        INSERT INTO semantic_index (content, embedding)
+        VALUES (${question}, ${embeddingString}::vector)
+        RETURNING id, content, created_at
+      `
+
+      const newId = Number(insertedEntry.id)
+
+      // Link to articles
+      for (const articleId of uniqueArticleIds) {
+        await tx`
+          INSERT INTO article_semantic_index (article_id, semantic_index_id)
+          VALUES (${articleId}, ${newId})
+          ON CONFLICT DO NOTHING
+        `
+      }
+
+      return insertedEntry
+    })
+
+    return c.json({ data: newEntry }, 201)
+  } catch (err) {
+    console.error('Failed to promote chat:', err)
+    return c.json({ data: null, error: 'Failed to promote chat message' }, 500)
+  }
+})
