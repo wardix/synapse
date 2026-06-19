@@ -77,3 +77,36 @@ export type CreateSemanticIndexRequest = {
   content: string
   article_ids?: number[]
 }
+
+export type SearchMode = 'fts' | 'semantic' | 'hybrid'
+
+export type SearchFilters = {
+  tag?: string
+  author_id?: number
+  limit?: number
+}
+
+export type FTSResult = {
+  article: Article
+  score: number
+}
+
+export type SemanticResult = {
+  article: Article
+  semantic_entry: SemanticIndexEntry
+  score: number
+}
+
+export type HybridResult = {
+  article: Article
+  semantic_entry?: SemanticIndexEntry
+  fts_score?: number
+  semantic_score?: number
+  combined_score: number
+}
+
+export type SearchResponse = {
+  mode: SearchMode
+  results: (FTSResult | SemanticResult | HybridResult)[]
+  total: number
+}

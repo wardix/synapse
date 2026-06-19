@@ -2,5 +2,5 @@ bunx biome check --write .
 
 # Run tests only if test files exist
 if find . -name '*.test.ts' -o -name '*.test.tsx' | grep -q .; then
-  bun test
+  bun test --isolate
 fi
