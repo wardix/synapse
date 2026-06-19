@@ -3,6 +3,7 @@ import { corsMiddleware } from './middleware/cors'
 import articlesRoute from './routes/articles'
 import authRoute from './routes/auth'
 import healthRoute from './routes/health'
+import searchRoute from './routes/search'
 import semanticIndex from './routes/semantic-index'
 import tagsRoute from './routes/tags'
 
@@ -39,6 +40,7 @@ app.route('/api/health', healthRoute)
 app.route('/api/auth', authRoute)
 app.route('/api/articles', articlesRoute)
 app.route('/api/tags', tagsRoute)
+app.route('/api/search', searchRoute)
 app.route('/api/semantic-index', semanticIndex)
 
 const port = Number(process.env.SERVER_PORT) || 3000
