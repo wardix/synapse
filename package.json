@@ -9,6 +9,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.0",
+    "@types/bcryptjs": "^3.0.0",
     "@types/bun": "latest",
     "husky": "^9.1.7"
   },
@@ -16,6 +17,8 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "hono": "^4.12.26"
+    "bcryptjs": "^3.0.3",
+    "hono": "^4.12.26",
+    "jose": "^6.2.3"
   }
 }
