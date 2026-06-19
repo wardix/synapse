@@ -1,0 +1,12 @@
+CREATE TABLE IF NOT EXISTS tags (
+    id    SERIAL PRIMARY KEY,
+    name  VARCHAR(100) UNIQUE NOT NULL,
+    slug  VARCHAR(100) UNIQUE NOT NULL,
+    color VARCHAR(7) DEFAULT '#6366f1'
+);
+
+CREATE TABLE IF NOT EXISTS article_tags (
+    article_id INTEGER REFERENCES articles(id) ON DELETE CASCADE,
+    tag_id     INTEGER REFERENCES tags(id) ON DELETE CASCADE,
+    PRIMARY KEY (article_id, tag_id)
+);
