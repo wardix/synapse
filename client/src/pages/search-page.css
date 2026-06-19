@@ -104,11 +104,7 @@
 }
 
 .result-card {
-  background-color: var(--surface-color);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-lg);
   padding: 1.5rem;
-  box-shadow: var(--shadow-sm);
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;
@@ -212,31 +208,6 @@
 .result-author {
   font-size: 0.85rem;
   color: var(--text-muted);
-}
-
-/* Loading Skeletons */
-.skeleton-card {
-  height: 160px;
-  background: linear-gradient(
-    90deg,
-    var(--surface-color) 25%,
-    rgba(255, 255, 255, 0.05) 50%,
-    var(--surface-color) 75%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: var(--border-radius-lg);
-  border: 1px solid var(--border-color);
-  margin-bottom: 1.5rem;
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
 }
 
 @keyframes slideUpFade {

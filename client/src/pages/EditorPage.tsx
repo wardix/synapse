@@ -4,6 +4,7 @@ import type { Article } from '../../../shared/types'
 import { get, post, put } from '../api/client'
 import { MarkdownEditor } from '../components/MarkdownEditor'
 import { MarkdownRenderer } from '../components/MarkdownRenderer'
+import { useToast } from '../hooks/useToast'
 import './editor-page.css'
 
 type Tag = { id: number; name: string; slug: string }
@@ -11,6 +12,7 @@ type Tag = { id: number; name: string; slug: string }
 export function EditorPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { addToast } = useToast()
 
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -74,12 +76,16 @@ export function EditorPage() {
         localStorage.removeItem('synapse-draft-new')
       }
 
+      addToast('Article saved successfully', 'success')
+
       // Navigate to article page (could use slug if returned, fallback to id/edit)
       navigate('/articles/new', { replace: true }) // A bit hacky without slug, let's just go home
       if (id) navigate(`/articles/${id}/edit`)
       else navigate('/') // or article page
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save article')
+      const msg = err instanceof Error ? err.message : 'Failed to save article'
+      setError(msg)
+      addToast(msg, 'error')
     } finally {
       setIsSaving(false)
     }

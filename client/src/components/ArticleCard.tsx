@@ -11,7 +11,7 @@ export function ArticleCard({ article }: { article: Article }) {
   })
 
   return (
-    <div className="article-card">
+    <div className="article-card glass-panel">
       <div className="article-card-content">
         <div className="article-card-tags">
           {article.tags?.slice(0, 3).map((tag) => (

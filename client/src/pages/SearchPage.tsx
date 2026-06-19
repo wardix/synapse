@@ -102,9 +102,18 @@ export function SearchPage() {
           </div>
         ) : isLoading && results.length === 0 ? (
           <div className="search-loading-state">
-            <div className="skeleton-card" />
-            <div className="skeleton-card" />
-            <div className="skeleton-card" />
+            <div
+              className="skeleton"
+              style={{ height: '160px', marginBottom: '1.5rem' }}
+            />
+            <div
+              className="skeleton"
+              style={{ height: '160px', marginBottom: '1.5rem' }}
+            />
+            <div
+              className="skeleton"
+              style={{ height: '160px', marginBottom: '1.5rem' }}
+            />
           </div>
         ) : results.length === 0 && !isLoading ? (
           <div className="search-empty-state">
@@ -122,7 +131,7 @@ export function SearchPage() {
               {results.map((result, index) => (
                 <div
                   key={result.article.id}
-                  className="result-card"
+                  className="result-card glass-panel"
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <div className="result-header">

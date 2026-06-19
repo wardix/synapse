@@ -102,8 +102,11 @@ export async function renderMarkdown(content: string): Promise<string> {
 
   const rawHtml = await marked.parse(processedContent)
 
-  const domPurify = typeof DOMPurifyImport === 'function' ? DOMPurifyImport : (DOMPurifyImport as any).default || DOMPurifyImport
-  
+  const domPurify =
+    typeof DOMPurifyImport === 'function'
+      ? DOMPurifyImport
+      : (DOMPurifyImport as any).default || DOMPurifyImport
+
   let sanitized = rawHtml
   if (domPurify && typeof domPurify.sanitize === 'function') {
     sanitized = domPurify.sanitize(rawHtml, {
