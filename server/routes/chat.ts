@@ -75,3 +75,96 @@ chatRoute.post('/', authMiddleware, async (c) => {
     )
   }
 })
+
+chatRoute.get('/history', authMiddleware, async (c) => {
+  // biome-ignore lint/suspicious/noExplicitAny: auth middleware
+  const user = (c.get as any)('user') as { userId: number }
+
+  const page = Number(c.req.query('page')) || 1
+  const limit = Number(c.req.query('limit')) || 20
+  const offset = (page - 1) * limit
+
+  try {
+    const [countResult] = await sql`
+      SELECT COUNT(*) as total 
+      FROM chat_messages 
+      WHERE user_id = ${user.userId}
+    `
+    const total = Number(countResult.total)
+
+    const messages = await sql`
+      SELECT id, question, 
+        CASE 
+          WHEN LENGTH(answer) > 200 THEN SUBSTRING(answer, 1, 200) || '...'
+          ELSE answer
+        END as answer,
+        created_at
+      FROM chat_messages
+      WHERE user_id = ${user.userId}
+      ORDER BY created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `
+
+    return c.json({
+      data: messages,
+      meta: { page, limit, total },
+    })
+  } catch (err) {
+    console.error('Failed to get chat history:', err)
+    return c.json({ data: null, error: 'Failed to fetch chat history' }, 500)
+  }
+})
+
+chatRoute.get('/:id', authMiddleware, async (c) => {
+  // biome-ignore lint/suspicious/noExplicitAny: auth middleware
+  const user = (c.get as any)('user') as { userId: number }
+  const chatId = Number(c.req.param('id'))
+
+  try {
+    const messages = await sql`
+      SELECT id, question, answer, created_at
+      FROM chat_messages
+      WHERE id = ${chatId} AND user_id = ${user.userId}
+    `
+
+    if (messages.length === 0) {
+      return c.json({ data: null, error: 'Chat message not found' }, 404)
+    }
+
+    const retrievals = await sql`
+      SELECT 
+        cr.semantic_index_id, 
+        si.content, 
+        cr.similarity as similarity_score,
+        a.id as article_id,
+        a.title as article_title,
+        a.slug as article_slug
+      FROM chat_retrievals cr
+      JOIN semantic_index si ON si.id = cr.semantic_index_id
+      LEFT JOIN article_semantic_index asi ON asi.semantic_index_id = si.id
+      LEFT JOIN articles a ON a.id = asi.article_id
+      WHERE cr.chat_id = ${chatId}
+    `
+
+    // De-duplicate retrievals by semantic_index_id, picking the first article match if multiple
+    // The query above can return duplicate retrievals if an entry is linked to multiple articles
+    const uniqueRetrievals = []
+    const seen = new Set()
+    for (const r of retrievals) {
+      if (!seen.has(r.semantic_index_id)) {
+        seen.add(r.semantic_index_id)
+        uniqueRetrievals.push(r)
+      }
+    }
+
+    return c.json({
+      data: {
+        ...messages[0],
+        retrievals: uniqueRetrievals,
+      },
+    })
+  } catch (err) {
+    console.error('Failed to get chat detail:', err)
+    return c.json({ data: null, error: 'Failed to fetch chat detail' }, 500)
+  }
+})

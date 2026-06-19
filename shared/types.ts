@@ -110,3 +110,27 @@ export type SearchResponse = {
   results: (FTSResult | SemanticResult | HybridResult)[]
   total: number
 }
+
+export type ChatMessage = {
+  id: number
+  question: string
+  answer: string
+  created_at: string
+}
+
+export type ChatRetrieval = {
+  semantic_index_id: number
+  content: string
+  similarity_score: number
+  article_id: number | null
+  article_title: string | null
+  article_slug: string | null
+}
+
+export type ChatDetail = {
+  id: number
+  question: string
+  answer: string
+  created_at: string
+  retrievals: ChatRetrieval[]
+}
