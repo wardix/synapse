@@ -59,3 +59,10 @@ export type ArticleListResponse = {
   data: Article[]
   meta: { page: number; limit: number; total: number }
 }
+
+export type CreateTagRequest = {
+  name: string
+  color?: string
+}
+
+export type UpdateTagRequest = Partial<CreateTagRequest>
