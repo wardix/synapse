@@ -1,10 +1,13 @@
-import { describe, it, expect, mock, beforeEach } from 'bun:test'
+import { beforeEach, describe, expect, it, mock } from 'bun:test'
 
 process.env.DATABASE_URL = 'postgres://test'
 
+// biome-ignore lint/suspicious/noExplicitAny: mock
 const mockSql = mock(async () => []) as any
 mockSql.file = mock(async () => {})
+// biome-ignore lint/suspicious/noExplicitAny: mock
 mockSql.begin = mock(async (cb: any) => {
+  // biome-ignore lint/suspicious/noExplicitAny: mock
   const tx = mock(async () => []) as any
   tx.file = mockSql.file
   await cb(tx)
@@ -32,9 +35,9 @@ describe('Migration Runner', () => {
 
   it('should apply migrations in sequential order', async () => {
     mockSql.mockImplementation(async () => []) // Simulate no migrations applied
-    
+
     const result = await runMigrations()
-    
+
     expect(result).toBe(true)
     expect(mockSql.begin).toHaveBeenCalled()
     expect(mockSql.file).toHaveBeenCalled()
@@ -44,14 +47,14 @@ describe('Migration Runner', () => {
     mockSql.mockImplementation(async (strings) => {
       const query = strings[0]
       // Skip the table creation mock
-      if (query && query.includes('SELECT 1 FROM _migrations')) {
+      if (query?.includes('SELECT 1 FROM _migrations')) {
         return [{ '?column?': 1 }] // Simulate applied
       }
       return []
     })
 
     const result = await runMigrations()
-    
+
     expect(result).toBe(true)
     expect(mockSql.begin).not.toHaveBeenCalled()
   })
@@ -62,14 +65,14 @@ describe('Migration Runner', () => {
     })
 
     const result = await runMigrations()
-    
+
     expect(result).toBe(false)
   })
 
   it('should return true on successful run', async () => {
     mockSql.mockImplementation(async () => [])
     const result = await runMigrations()
-    
+
     expect(result).toBe(true)
   })
 })
