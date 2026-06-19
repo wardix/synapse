@@ -17,9 +17,25 @@ semanticIndex.get('/', async (c) => {
   const offset = (page - 1) * limit
 
   const entries = await sql<SemanticIndexEntry[]>`
-    SELECT id, content, created_at
-    FROM semantic_index
-    ORDER BY created_at DESC
+    SELECT 
+      si.id, 
+      si.content, 
+      si.created_at,
+      COALESCE(
+        json_agg(
+          json_build_object(
+            'id', a.id,
+            'title', a.title,
+            'slug', a.slug
+          )
+        ) FILTER (WHERE a.id IS NOT NULL),
+        '[]'
+      ) as linked_articles
+    FROM semantic_index si
+    LEFT JOIN article_semantic_index asi ON si.id = asi.semantic_index_id
+    LEFT JOIN articles a ON asi.article_id = a.id
+    GROUP BY si.id
+    ORDER BY si.created_at DESC
     LIMIT ${limit} OFFSET ${offset}
   `
 

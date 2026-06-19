@@ -71,6 +71,7 @@ export type SemanticIndexEntry = {
   id: number
   content: string
   created_at: string
+  linked_articles?: { id: number; title: string; slug: string }[]
 }
 
 export type CreateSemanticIndexRequest = {
