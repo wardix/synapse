@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { corsMiddleware } from './middleware/cors'
 import articlesRoute from './routes/articles'
 import authRoute from './routes/auth'
+import { chatRoute } from './routes/chat'
 import healthRoute from './routes/health'
 import searchRoute from './routes/search'
 import semanticIndex from './routes/semantic-index'
@@ -42,6 +43,7 @@ app.route('/api/articles', articlesRoute)
 app.route('/api/tags', tagsRoute)
 app.route('/api/search', searchRoute)
 app.route('/api/semantic-index', semanticIndex)
+app.route('/api/chat', chatRoute)
 
 const port = Number(process.env.SERVER_PORT) || 3000
 
