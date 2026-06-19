@@ -5,21 +5,39 @@ import type {
   SemanticResult,
 } from '../../shared/types'
 import { searchFTS, searchHybrid, searchSemantic } from '../services/search'
+import { validateNumber, validateString } from '../utils/validate'
 
 const searchRoute = new Hono()
 
 searchRoute.get('/', async (c) => {
   const q = c.req.query('q')
   const mode = c.req.query('mode') || 'hybrid'
-  const tag = c.req.query('tag')
-  const author_id = c.req.query('author_id')
-    ? Number(c.req.query('author_id'))
-    : undefined
-  const limit = c.req.query('limit') ? Number(c.req.query('limit')) : undefined
 
-  if (!q || q.trim() === '') {
+  if (!q) {
     return c.json({ data: null, error: 'Query parameter "q" is required' }, 400)
   }
+  const query = validateString(q, {
+    minLength: 1,
+    maxLength: 500,
+    fieldName: 'q',
+  })
+
+  const tag = c.req.query('tag')
+    ? validateString(c.req.query('tag'), { maxLength: 100, fieldName: 'tag' })
+    : undefined
+  const author_id = c.req.query('author_id')
+    ? validateNumber(c.req.query('author_id'), {
+        min: 1,
+        fieldName: 'author_id',
+      })
+    : undefined
+  const limit = c.req.query('limit')
+    ? validateNumber(c.req.query('limit'), {
+        min: 1,
+        max: 100,
+        fieldName: 'limit',
+      })
+    : undefined
 
   if (mode !== 'fts' && mode !== 'semantic' && mode !== 'hybrid') {
     return c.json({ data: null, error: 'Invalid search mode' }, 400)
@@ -29,11 +47,11 @@ searchRoute.get('/', async (c) => {
 
   let results: (FTSResult | SemanticResult | HybridResult)[] = []
   if (mode === 'fts') {
-    results = await searchFTS(q, filters)
+    results = await searchFTS(query, filters)
   } else if (mode === 'semantic') {
-    results = await searchSemantic(q, filters)
+    results = await searchSemantic(query, filters)
   } else {
-    results = await searchHybrid(q, filters)
+    results = await searchHybrid(query, filters)
   }
 
   return c.json({

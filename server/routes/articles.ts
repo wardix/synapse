@@ -9,17 +9,25 @@ import { type AuthVariables, authMiddleware } from '../middleware/auth'
 import { verifyToken } from '../services/auth'
 import { generateEmbedding } from '../services/embedding'
 import { generateSlug } from '../utils/slug'
+import {
+  validateArray,
+  validatePagination,
+  validateString,
+} from '../utils/validate'
 
 const articlesRoute = new Hono<{ Variables: AuthVariables }>()
 
 articlesRoute.get('/', async (c) => {
-  const page = Number(c.req.query('page')) || 1
-  const limit = Number(c.req.query('limit')) || 20
-  const tagSlug = c.req.query('tag') || null
+  const { page, limit, offset } = validatePagination(
+    c.req.query('page'),
+    c.req.query('limit'),
+  )
+  const tagSlug = c.req.query('tag')
+    ? validateString(c.req.query('tag'), { maxLength: 100, fieldName: 'tag' })
+    : null
   const authorId = c.req.query('author_id')
     ? Number(c.req.query('author_id'))
     : null
-  const offset = (page - 1) * limit
 
   const authHeader = c.req.header('Authorization')
   let userId: number | null = null
@@ -155,12 +163,27 @@ articlesRoute.get('/:slug', async (c) => {
 articlesRoute.post('/', authMiddleware, async (c) => {
   const user = c.get('user')
   const body = await c.req.json<CreateArticleRequest>()
-  const { title, content, is_published, tag_ids } = body
-  let { excerpt } = body
-
-  if (!title || !content) {
+  if (!body.title || !body.content) {
     return c.json({ data: null, error: 'Title and content are required' }, 400)
   }
+
+  const title = validateString(body.title, {
+    minLength: 1,
+    maxLength: 500,
+    fieldName: 'title',
+  })
+  const content = validateString(body.content, {
+    minLength: 1,
+    maxLength: 100000,
+    fieldName: 'content',
+  })
+  const is_published = body.is_published
+  const tag_ids = body.tag_ids
+    ? validateArray(body.tag_ids, { fieldName: 'tag_ids' })
+    : undefined
+  const excerpt = body.excerpt
+    ? validateString(body.excerpt, { maxLength: 1000, fieldName: 'excerpt' })
+    : content.substring(0, 200)
 
   const slug = await generateSlug(title)
 
@@ -170,10 +193,6 @@ articlesRoute.post('/', authMiddleware, async (c) => {
     if (validTags.length !== tag_ids.length) {
       return c.json({ data: null, error: 'One or more tags are invalid' }, 400)
     }
-  }
-
-  if (!excerpt) {
-    excerpt = content.substring(0, 200)
   }
 
   const inserted = await sql`
@@ -228,13 +247,28 @@ articlesRoute.put('/:id', authMiddleware, async (c) => {
   // biome-ignore lint/suspicious/noExplicitAny: pg record
   const current = existing[0] as any
 
-  const title = body.title || current.title
+  const title = body.title
+    ? validateString(body.title, {
+        minLength: 1,
+        maxLength: 500,
+        fieldName: 'title',
+      })
+    : current.title
   const slug =
     body.title && body.title !== current.title
-      ? await generateSlug(body.title)
+      ? await generateSlug(title)
       : current.slug
-  const content = body.content || current.content
-  const excerpt = body.excerpt !== undefined ? body.excerpt : current.excerpt
+  const content = body.content
+    ? validateString(body.content, {
+        minLength: 1,
+        maxLength: 100000,
+        fieldName: 'content',
+      })
+    : current.content
+  const excerpt =
+    body.excerpt !== undefined
+      ? validateString(body.excerpt, { maxLength: 1000, fieldName: 'excerpt' })
+      : current.excerpt
   const is_published =
     body.is_published !== undefined ? body.is_published : current.is_published
 

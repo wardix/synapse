@@ -3,6 +3,7 @@ import { stream } from 'hono/streaming'
 import { sql } from '../db/connection'
 import { authMiddleware } from '../middleware/auth'
 import { askRag } from '../services/rag'
+import { validateArray, validateString } from '../utils/validate'
 
 export const chatRoute = new Hono()
 
@@ -11,12 +12,17 @@ chatRoute.post('/', authMiddleware, async (c) => {
   if (!body?.question) {
     return c.json({ data: null, error: 'Question is required' }, 400)
   }
+  const question = validateString(body.question, {
+    minLength: 1,
+    maxLength: 5000,
+    fieldName: 'question',
+  })
 
   // biome-ignore lint/suspicious/noExplicitAny: auth middleware
   const user = (c.get as any)('user') as { userId: number }
 
   try {
-    const { stream: aiStream, retrievals } = await askRag(body.question)
+    const { stream: aiStream, retrievals } = await askRag(question)
 
     return stream(c, async (streamWriter) => {
       // Write headers for SSE
@@ -45,7 +51,7 @@ chatRoute.post('/', authMiddleware, async (c) => {
         try {
           const [insertedMessage] = await sql`
             INSERT INTO chat_messages (user_id, question, answer)
-            VALUES (${user.userId}, ${body.question}, ${fullAnswer})
+            VALUES (${user.userId}, ${question}, ${fullAnswer})
             RETURNING id
           `
           const chatId = Number(insertedMessage.id)
@@ -175,16 +181,10 @@ chatRoute.post('/:id/promote', authMiddleware, async (c) => {
   const chatId = Number(c.req.param('id'))
   const body = await c.req.json<{ article_ids?: number[] }>().catch(() => null)
 
-  if (
-    !body?.article_ids ||
-    !Array.isArray(body.article_ids) ||
-    body.article_ids.length === 0
-  ) {
-    return c.json(
-      { data: null, error: 'article_ids must be a non-empty array' },
-      400,
-    )
-  }
+  const article_ids = validateArray(body.article_ids, {
+    minLength: 1,
+    fieldName: 'article_ids',
+  })
 
   try {
     // 1. Get the chat question
@@ -198,7 +198,7 @@ chatRoute.post('/:id/promote', authMiddleware, async (c) => {
     const question = chatMessages[0].question
 
     // 2. Validate article IDs exist
-    const uniqueArticleIds = [...new Set(body.article_ids)]
+    const uniqueArticleIds = [...new Set(article_ids)]
     const articles = await sql`
       SELECT id FROM articles WHERE id IN ${sql(uniqueArticleIds)}
     `

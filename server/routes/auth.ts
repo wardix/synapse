@@ -3,34 +3,34 @@ import type { LoginRequest, RegisterRequest, User } from '../../shared/types'
 import { sql } from '../db/connection'
 import { type AuthVariables, authMiddleware } from '../middleware/auth'
 import { hashPassword, signToken, verifyPassword } from '../services/auth'
+import { validateString } from '../utils/validate'
 
 const authRoute = new Hono<{ Variables: AuthVariables }>()
 
 authRoute.post('/register', async (c) => {
   const body = await c.req.json<RegisterRequest>()
-  const { username, email, password } = body
-
-  if (!username || !email || !password) {
+  if (!body.username || !body.email || !body.password) {
     return c.json({ data: null, error: 'All fields are required' }, 400)
   }
+
+  const email = validateString(body.email, {
+    maxLength: 255,
+    fieldName: 'email',
+  })
+  const username = validateString(body.username, {
+    minLength: 3,
+    maxLength: 50,
+    fieldName: 'username',
+  })
+  const password = validateString(body.password, {
+    minLength: 8,
+    maxLength: 255,
+    fieldName: 'password',
+  })
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!emailRegex.test(email)) {
     return c.json({ data: null, error: 'Invalid email format' }, 400)
-  }
-
-  if (password.length < 8) {
-    return c.json(
-      { data: null, error: 'Password must be at least 8 characters long' },
-      400,
-    )
-  }
-
-  if (username.length < 3) {
-    return c.json(
-      { data: null, error: 'Username must be at least 3 characters long' },
-      400,
-    )
   }
 
   const existingUser = await sql`
@@ -64,11 +64,18 @@ authRoute.post('/register', async (c) => {
 
 authRoute.post('/login', async (c) => {
   const body = await c.req.json<LoginRequest>()
-  const { email, password } = body
-
-  if (!email || !password) {
+  if (!body.email || !body.password) {
     return c.json({ data: null, error: 'Email and password are required' }, 400)
   }
+
+  const email = validateString(body.email, {
+    maxLength: 255,
+    fieldName: 'email',
+  })
+  const password = validateString(body.password, {
+    maxLength: 255,
+    fieldName: 'password',
+  })
 
   const users = await sql`
     SELECT id, username, email, password_hash, avatar_url, created_at, updated_at
