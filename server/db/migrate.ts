@@ -27,7 +27,10 @@ export async function runMigrations() {
       .sort();
 
     for (const file of sqlFiles) {
-      const isApplied = await sql`SELECT 1 FROM _migrations WHERE name = ${file}`.then((res) => res.length > 0);
+      const [applied] = await sql`
+        SELECT 1 FROM _migrations WHERE name = ${file}
+      `
+      const isApplied = applied !== undefined
 
       if (isApplied) {
         console.log(`Skipping already applied migration: ${file}`);
