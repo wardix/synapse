@@ -58,13 +58,13 @@ export function HomePage() {
         </div>
 
         {loading ? (
-          <div className="articles-grid">
+          <div className="responsive-grid">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="skeleton-card" />
+              <div key={i} className="skeleton" style={{ height: '250px' }} />
             ))}
           </div>
         ) : (
-          <div className="articles-grid">
+          <div className="responsive-grid">
             {articles.map((article) => (
               <ArticleCard key={article.id} article={article} />
             ))}

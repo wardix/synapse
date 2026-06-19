@@ -62,7 +62,7 @@ export function ChatHistoryPage() {
           &larr; Back to History
         </button>
 
-        <div className="chat-detail-view">
+        <div className="chat-detail-view glass-panel">
           <h2 className="chat-detail-question">{selectedChat.question}</h2>
 
           <div className="chat-detail-answer">
@@ -142,7 +142,7 @@ export function ChatHistoryPage() {
           // biome-ignore lint/a11y/noStaticElementInteractions: Clickable history item
           <div
             key={chat.id}
-            className="history-item"
+            className="history-item glass-panel"
             onClick={() => handleChatClick(chat.id)}
           >
             <div className="history-item-header">

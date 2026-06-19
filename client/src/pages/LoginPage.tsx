@@ -1,6 +1,7 @@
 import { type FormEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { useToast } from '../hooks/useToast'
 import './login-page.css'
 
 export function LoginPage() {
@@ -13,6 +14,7 @@ export function LoginPage() {
 
   const { login, register } = useAuth()
   const navigate = useNavigate()
+  const { addToast } = useToast()
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -40,8 +42,10 @@ export function LoginPage() {
     try {
       if (isLogin) {
         await login({ email, password })
+        addToast('Successfully signed in', 'success')
       } else {
         await register({ email, password, username })
+        addToast('Account created successfully', 'success')
       }
       navigate('/')
       // biome-ignore lint/suspicious/noExplicitAny: error handling
@@ -54,7 +58,7 @@ export function LoginPage() {
 
   return (
     <div className="login-page">
-      <div className="login-card">
+      <div className="login-card glass-panel">
         <div className="login-header">
           <h1 className="login-title">
             {isLogin ? 'Welcome Back' : 'Create Account'}
