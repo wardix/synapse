@@ -14,9 +14,14 @@ mock.module('../services/rag', () => ({
   }),
 }))
 
-mock.module('../db/connection', () => ({
-  // biome-ignore lint/suspicious/noExplicitAny: mock
-  sql: mock(async (strings: TemplateStringsArray, ...values: any[]) => {
+mock.module('../services/embedding', () => ({
+  generateEmbedding: mock(async () => new Array(768).fill(0.1)),
+}))
+
+// biome-ignore lint/suspicious/noExplicitAny: mock
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: mock
+const sqlMock = mock(
+  async (strings: TemplateStringsArray, ...values: any[]) => {
     const query = strings.join(' ')
     if (query.includes('INSERT INTO chat_messages')) {
       return [{ id: 100 }]
@@ -38,7 +43,6 @@ mock.module('../db/connection', () => ({
       query.includes('WHERE id = $1 AND user_id = $2') ||
       (query.includes('WHERE id = ') && query.includes('user_id = '))
     ) {
-      // simulate parameter injection
       const chatIdParam = values[0]
       if (chatIdParam === 999) return []
       return [
@@ -62,10 +66,43 @@ mock.module('../db/connection', () => ({
         },
       ]
     }
+    if (query.includes('FROM articles WHERE id IN')) {
+      const valStr = String(values[0]) + JSON.stringify(values[0])
+      if (valStr.includes('999')) return [] // simulate not found
+      return [{ id: 1 }, { id: 2 }]
+    }
+    if (query.includes('INSERT INTO semantic_index')) {
+      return [{ id: 50, content: values[0] }]
+    }
+    if (query.includes('INSERT INTO article_semantic_index')) {
+      return []
+    }
+    if (query.includes('SELECT question FROM chat_messages')) {
+      const chatIdParam = values[0]
+      if (chatIdParam === 999) return []
+      return [{ question: 'Test Q' }]
+    }
     return []
-  }),
-}))
+  },
+  // biome-ignore lint/suspicious/noExplicitAny: mock
+) as any
 
+// biome-ignore lint/suspicious/noExplicitAny: mock
+sqlMock.begin = mock(async (cb: any) => {
+  // biome-ignore lint/suspicious/noExplicitAny: mock
+  const tx = mock(async (strings: TemplateStringsArray, ...values: any[]) => {
+    const query = strings.join(' ')
+    if (query.includes('INSERT INTO semantic_index')) {
+      return [{ id: 50, content: values[0] }]
+    }
+    return []
+  })
+  return cb(tx)
+})
+
+mock.module('../db/connection', () => ({
+  sql: sqlMock,
+}))
 describe('Chat Route', () => {
   let token: string
 
@@ -158,5 +195,61 @@ describe('Chat Route', () => {
     })
     const res = await app.fetch(req)
     expect(res.status).toBe(404)
+  })
+
+  it('should promote a chat message successfully', async () => {
+    // Mock the embedding service temporarily just for this test
+    const req = new Request('http://localhost/api/chat/100/promote', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ article_ids: [1, 2] }),
+    })
+    const res = await app.fetch(req)
+    expect(res.status).toBe(201)
+    const body = (await res.json()) as { data: { id: number; content: string } }
+    expect(body.data.id).toBeDefined()
+    expect(body.data.content).toBe('Test Q') // from the mock
+  })
+
+  it('should return 404 when promoting non-existent chat', async () => {
+    const req = new Request('http://localhost/api/chat/999/promote', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ article_ids: [1] }),
+    })
+    const res = await app.fetch(req)
+    expect(res.status).toBe(404)
+  })
+
+  it('should return 400 when missing article_ids', async () => {
+    const req = new Request('http://localhost/api/chat/100/promote', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({}),
+    })
+    const res = await app.fetch(req)
+    expect(res.status).toBe(400)
+  })
+
+  it('should return 400 when article_ids is invalid', async () => {
+    const req = new Request('http://localhost/api/chat/100/promote', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ article_ids: [999] }),
+    })
+    const res = await app.fetch(req)
+    expect(res.status).toBe(400)
   })
 })
