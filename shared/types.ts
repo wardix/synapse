@@ -66,3 +66,14 @@ export type CreateTagRequest = {
 }
 
 export type UpdateTagRequest = Partial<CreateTagRequest>
+
+export type SemanticIndexEntry = {
+  id: number
+  content: string
+  created_at: string
+}
+
+export type CreateSemanticIndexRequest = {
+  content: string
+  article_ids?: number[]
+}
