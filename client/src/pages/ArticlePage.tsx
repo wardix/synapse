@@ -1,4 +1,4 @@
-export default function ArticlePage() {
+export function ArticlePage() {
   return (
     <div className="page-container">
       <div className="glass-panel">

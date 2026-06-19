@@ -1,4 +1,4 @@
-export default function SemanticIndexPage() {
+export function SemanticIndexPage() {
   return (
     <div className="page-container">
       <div className="glass-panel">

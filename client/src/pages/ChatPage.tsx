@@ -1,4 +1,4 @@
-export default function ChatPage() {
+export function ChatPage() {
   return (
     <div className="page-container">
       <div className="glass-panel">

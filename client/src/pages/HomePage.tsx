@@ -1,4 +1,4 @@
-export default function HomePage() {
+export function HomePage() {
   return (
     <div className="page-container">
       <div className="glass-panel">
