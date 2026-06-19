@@ -22,3 +22,40 @@ export type AuthResponse = {
   user: User
   token: string
 }
+
+export type Tag = {
+  id: number
+  name: string
+  slug: string
+  color: string | null
+  created_at: string
+}
+
+export type Article = {
+  id: number
+  title: string
+  slug: string
+  content: string
+  excerpt: string | null
+  author: { id: number; username: string } | null
+  tags: Tag[]
+  is_published: boolean
+  view_count: number
+  created_at: string
+  updated_at: string
+}
+
+export type CreateArticleRequest = {
+  title: string
+  content: string
+  excerpt?: string
+  is_published?: boolean
+  tag_ids?: number[]
+}
+
+export type UpdateArticleRequest = Partial<CreateArticleRequest>
+
+export type ArticleListResponse = {
+  data: Article[]
+  meta: { page: number; limit: number; total: number }
+}
