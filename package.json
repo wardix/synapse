@@ -4,7 +4,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "prepare": "husky"
+    "prepare": "husky",
+    "migrate": "bun run server/db/migrate.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.0",
