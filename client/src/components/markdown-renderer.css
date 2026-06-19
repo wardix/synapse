@@ -1,0 +1,160 @@
+.markdown-renderer {
+  color: var(--text);
+  line-height: 1.6;
+  font-size: 1.05rem;
+  word-wrap: break-word;
+}
+
+.markdown-renderer.loading {
+  opacity: 0.6;
+}
+
+.markdown-renderer h1,
+.markdown-renderer h2,
+.markdown-renderer h3,
+.markdown-renderer h4,
+.markdown-renderer h5,
+.markdown-renderer h6 {
+  color: var(--text);
+  font-weight: 600;
+  line-height: 1.25;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.markdown-renderer h1 {
+  font-size: 2rem;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 0.3em;
+}
+.markdown-renderer h2 {
+  font-size: 1.5rem;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 0.3em;
+}
+.markdown-renderer h3 {
+  font-size: 1.25rem;
+}
+.markdown-renderer h4 {
+  font-size: 1rem;
+}
+
+.markdown-renderer p {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.markdown-renderer a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.markdown-renderer a:hover {
+  text-decoration: underline;
+}
+
+.markdown-renderer strong {
+  font-weight: 600;
+}
+
+.markdown-renderer ul,
+.markdown-renderer ol {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  padding-left: 2rem;
+}
+
+.markdown-renderer li {
+  margin-bottom: 0.25rem;
+}
+
+.markdown-renderer blockquote {
+  margin: 0 0 1rem;
+  padding: 0.5rem 1rem;
+  color: var(--text-muted);
+  background: var(--glass-bg);
+  border-left: 4px solid var(--primary);
+  border-radius: 0 4px 4px 0;
+}
+
+.markdown-renderer hr {
+  height: 1px;
+  background-color: var(--glass-border);
+  border: none;
+  margin: 2rem 0;
+}
+
+.markdown-renderer table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+}
+
+.markdown-renderer th,
+.markdown-renderer td {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--glass-border);
+}
+
+.markdown-renderer tr:nth-child(even) {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.markdown-renderer img {
+  max-width: 100%;
+  box-sizing: content-box;
+  background-color: var(--bg);
+  border-radius: 8px;
+}
+
+/* Inline code */
+.markdown-renderer code {
+  padding: 0.2em 0.4em;
+  margin: 0;
+  font-size: 85%;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  font-family: 'Fira Code', 'Courier New', Courier, monospace;
+}
+
+/* Code blocks (shiki) */
+.markdown-renderer pre {
+  padding: 1rem;
+  overflow: auto;
+  font-size: 85%;
+  line-height: 1.45;
+  background-color: #0d1117; /* GitHub dark bg */
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  border: 1px solid var(--glass-border);
+}
+
+.markdown-renderer pre code {
+  display: inline;
+  max-width: auto;
+  padding: 0;
+  margin: 0;
+  overflow: visible;
+  line-height: inherit;
+  word-wrap: normal;
+  background-color: transparent;
+  border: 0;
+}
+
+/* Mermaid */
+.mermaid-block {
+  display: flex;
+  justify-content: center;
+  background: var(--glass-bg);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  border: 1px solid var(--glass-border);
+}
+
+/* Katex adjustments */
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 1rem 0;
+}
