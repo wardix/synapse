@@ -34,6 +34,7 @@
 | LLM | Google Gemini API (`gemini-2.5-flash`) |
 | Auth | JWT (bcrypt + jose) |
 | Styling | Vanilla CSS |
+| Linter/Formatter | [Biome](https://biomejs.dev) |
 
 ## Prerequisites
 
@@ -115,6 +116,9 @@ kb/
 | `bun run dev:client` | Start only the frontend client |
 | `bun run migrate` | Run database migrations |
 | `bun run build` | Build the production bundle |
+| `bunx biome check .` | Lint and format check (no changes) |
+| `bunx biome check --write .` | Auto-fix lint and formatting issues |
+| `bun test` | Run all tests |
 
 ## Documentation
 

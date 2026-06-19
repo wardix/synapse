@@ -26,6 +26,7 @@ Before starting any work, read these documents:
 | **Auth** | JWT-based (bcrypt + jose) |
 | **Styling** | Vanilla CSS |
 | **Testing** | `bun:test` (built-in) |
+| **Linter/Formatter** | [Biome](https://biomejs.dev) |
 
 ---
 
@@ -93,6 +94,19 @@ client/src/hooks/useAuth.ts     → client/src/hooks/useAuth.test.ts
 - Prefer `const` over `let`. Never use `var`.
 - Use early returns to reduce nesting.
 - Prefer named exports over default exports.
+
+### Code Style (Biome)
+
+All code is formatted and linted by **Biome** (`biome.json`). Do not override these settings per-file.
+
+- **Indent**: 2 spaces
+- **Quotes**: single quotes (`'hello'`), double quotes for JSX (`<div className="x">`)
+- **Semicolons**: none (`const x = 1`)
+- **Trailing commas**: always (`[a, b, c,]`)
+- **Line width**: 80 characters
+- **Arrow parens**: always (`(x) => x`)
+- Run `bunx biome check --write .` to auto-fix formatting and lint issues.
+- Run `bunx biome check .` to check without modifying files.
 
 ### File Naming
 
@@ -211,6 +225,8 @@ client/src/hooks/useAuth.ts     → client/src/hooks/useAuth.test.ts
 - **Write tests FIRST** before implementing any feature (TDD).
 - **Run `bun test`** before committing to ensure nothing is broken.
 - **Test every route** for correct status codes, response format, validation, and auth.
+- **Run `bunx biome check .`** before committing to ensure code passes lint and format checks.
+- **Follow Biome rules** — do not disable rules without team consensus.
 
 ### ❌ Don't
 
@@ -227,3 +243,5 @@ client/src/hooks/useAuth.ts     → client/src/hooks/useAuth.test.ts
 - **DON'T** write implementation code without writing a failing test first.
 - **DON'T** skip tests — every route, service, and utility must be tested.
 - **DON'T** commit code with failing tests.
+- **DON'T** commit code with Biome lint errors — fix them first.
+- **DON'T** disable Biome rules inline (`// biome-ignore`) without a clear justification comment.
