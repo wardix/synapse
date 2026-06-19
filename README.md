@@ -67,6 +67,27 @@ bun run dev
 
 The app will be available at `http://localhost:5173` (client) with the API at `http://localhost:3000`.
 
+## Docker Production Deployment
+
+Synapse includes a complete Docker Compose production setup that runs the PostgreSQL database and the Bun server (which serves both the API and the React client) in a single command.
+
+### Setup Steps
+
+1. **Copy Environment Variables**:
+   ```bash
+   cp .env.example .env
+   ```
+2. **Configure Variables**: Edit `.env` to ensure `GEMINI_API_KEY` and `JWT_SECRET` are correctly populated.
+3. **Start the Stack**:
+   ```bash
+   docker-compose up -d
+   ```
+4. **Access the App**:
+   The full app (Frontend + Backend) will be securely available on `http://localhost:3000`. Database persists inside named Docker volumes seamlessly.
+
+### Preserving Data
+If you need to stop the application, you can safely do so with `docker-compose down`. Running `docker-compose up -d` afterwards will automatically preserve all your existing data, settings, and vector embeddings using Docker Volumes.
+
 ## Environment Variables
 
 | Variable | Description | Default |
