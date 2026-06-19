@@ -163,6 +163,14 @@ articlesRoute.post('/', authMiddleware, async (c) => {
 
   const slug = await generateSlug(title)
 
+  if (tag_ids && tag_ids.length > 0) {
+    const validTags =
+      await sql`SELECT id FROM tags WHERE id = ANY(${tag_ids}::int[])`
+    if (validTags.length !== tag_ids.length) {
+      return c.json({ data: null, error: 'One or more tags are invalid' }, 400)
+    }
+  }
+
   if (!excerpt) {
     excerpt = content.substring(0, 200)
   }
@@ -192,6 +200,15 @@ articlesRoute.put('/:id', authMiddleware, async (c) => {
   if (existing.length === 0) {
     return c.json({ data: null, error: 'Article not found' }, 404)
   }
+
+  if (body.tag_ids && body.tag_ids.length > 0) {
+    const validTags =
+      await sql`SELECT id FROM tags WHERE id = ANY(${body.tag_ids}::int[])`
+    if (validTags.length !== body.tag_ids.length) {
+      return c.json({ data: null, error: 'One or more tags are invalid' }, 400)
+    }
+  }
+
   // biome-ignore lint/suspicious/noExplicitAny: pg record
   const current = existing[0] as any
 
