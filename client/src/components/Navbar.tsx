@@ -53,6 +53,15 @@ export function Navbar() {
           >
             Semantic Index
           </Link>
+          {isAuthenticated && (
+            <Link
+              to="/editor"
+              className="nav-link"
+              onClick={closeMobileMenu}
+            >
+              + New Article
+            </Link>
+          )}
 
           <div className="navbar-auth-mobile">
             {isAuthenticated && user ? (

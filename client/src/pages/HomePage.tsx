@@ -41,6 +41,11 @@ export function HomePage() {
             <Link to="/search" className="btn-primary">
               Search Knowledge
             </Link>
+            {user && (
+              <Link to="/editor" className="btn-secondary">
+                + New Article
+              </Link>
+            )}
             <div className="stats-badge">
               <span className="stats-number">{stats.totalArticles}</span>{' '}
               Articles
