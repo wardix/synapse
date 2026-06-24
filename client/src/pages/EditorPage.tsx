@@ -65,13 +65,10 @@ export function EditorPage() {
     }
 
     try {
-      let _resId: number
       if (id) {
         await put<{ data: Article }>(`/api/articles/${id}`, payload)
-        _resId = Number(id)
       } else {
-        const res = await post<{ data: Article }>('/api/articles', payload)
-        _resId = res.data.id
+        await post<{ data: Article }>('/api/articles', payload)
         // Clear local draft since it's saved to server
         localStorage.removeItem('synapse-draft-new')
       }
@@ -91,11 +88,6 @@ export function EditorPage() {
     }
   }
 
-  const _toggleTag = (tagId: number) => {
-    setSelectedTags((prev) =>
-      prev.includes(tagId) ? prev.filter((t) => t !== tagId) : [...prev, tagId],
-    )
-  }
 
   return (
     <div className="editor-page">
