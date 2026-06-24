@@ -4,6 +4,7 @@ import type {
   SemanticIndexEntry,
 } from '../../shared/types'
 import { sql } from '../db/connection'
+import { authMiddleware } from '../middleware/auth'
 import { generateEmbedding } from '../services/embedding'
 import {
   validateArray,
