@@ -124,8 +124,7 @@ kb/
 │   └── types.ts
 │
 ├── docker-compose.yml      # PostgreSQL + pgvector for local dev
-├── PRD.md                  # Product Requirements Document
-└── ARCHITECTURE.md         # Technical Architecture Plan
+└── PRD.md                  # Product Requirements Document
 ```
 
 ## Available Scripts
@@ -143,8 +142,8 @@ kb/
 
 ## Documentation
 
-- [PRD.md](./PRD.md) — Product Requirements Document with user stories, data model, and rollout plan
-- [ARCHITECTURE.md](./ARCHITECTURE.md) — Technical architecture, database schema, API endpoints, and implementation phases
+- [PRD.md](./PRD.md) — Product requirements, user stories, data model, and rollout plan
+- [.agents/AGENTS.md](./.agents/AGENTS.md) — Coding conventions, project structure, and agent rules
 
 ## License
 
