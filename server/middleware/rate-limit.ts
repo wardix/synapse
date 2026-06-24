@@ -97,25 +97,25 @@ export const createRateLimiter = (options: RateLimitOptions) => {
   }
 }
 
-// Pre-configured rate limiters
+// Pre-configured rate limiters (configurable via env vars)
 export const authRateLimiter = createRateLimiter({
   windowMs: 60000,
-  max: 5,
+  max: Number(process.env.RATE_LIMIT_AUTH) || 5,
 })
 
 export const chatRateLimiter = createRateLimiter({
   windowMs: 60000,
-  max: 10,
+  max: Number(process.env.RATE_LIMIT_CHAT) || 10,
 })
 
 export const searchRateLimiter = createRateLimiter({
   windowMs: 60000,
-  max: 30,
+  max: Number(process.env.RATE_LIMIT_SEARCH) || 30,
 })
 
 export const generalRateLimiter = createRateLimiter({
   windowMs: 60000,
-  max: 60,
+  max: Number(process.env.RATE_LIMIT_GENERAL) || 60,
 })
 
 // Helper to reset store for tests

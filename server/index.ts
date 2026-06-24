@@ -51,12 +51,10 @@ app.notFound((c) => {
 // Mount routes
 app.route('/api/health', healthRoute)
 
-// Apply category-specific rate limits before mounting routes
+// Apply rate limits
 app.use('/api/auth/*', authRateLimiter)
 app.use('/api/chat/*', chatRateLimiter)
 app.use('/api/search/*', searchRateLimiter)
-
-// Apply general rate limit to other routes
 app.use('/api/articles/*', generalRateLimiter)
 app.use('/api/tags/*', generalRateLimiter)
 app.use('/api/semantic-index/*', generalRateLimiter)
