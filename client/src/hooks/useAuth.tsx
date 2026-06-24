@@ -1,6 +1,7 @@
 import {
   createContext,
   type ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useState,
@@ -30,7 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
-  const fetchCurrentUser = async () => {
+  const fetchCurrentUser = useCallback(async () => {
     setIsLoading(true)
     try {
       const data = await get<{ data: { user: User } }>('/api/auth/me')
@@ -44,14 +45,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     if (localStorage.getItem('token')) {
       fetchCurrentUser()
     } else {
+      setIsLoading(false)
     }
-    // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally run once on mount
   }, [fetchCurrentUser])
 
   const login = async (req: LoginRequest) => {
