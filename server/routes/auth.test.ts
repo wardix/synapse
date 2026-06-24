@@ -42,7 +42,7 @@ mock.module('../db/connection', () => {
               id: 1,
               username: 'testuser',
               email: 'user@example.com',
-              password_hash: await hashPassword('password123'),
+              password: await hashPassword('password123'),
               avatar_url: null,
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),

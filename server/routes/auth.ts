@@ -51,7 +51,7 @@ authRoute.post('/register', async (c) => {
   const hashedPassword = await hashPassword(password)
 
   const inserted = await sql`
-    INSERT INTO users (username, email, password_hash)
+    INSERT INTO users (username, email, password)
     VALUES (${username}, ${email}, ${hashedPassword})
     RETURNING id, username, email, avatar_url, created_at, updated_at
   `
@@ -78,7 +78,7 @@ authRoute.post('/login', async (c) => {
   })
 
   const users = await sql`
-    SELECT id, username, email, password_hash, avatar_url, created_at, updated_at
+    SELECT id, username, email, password, avatar_url, created_at, updated_at
     FROM users
     WHERE email = ${email}
   `
@@ -89,7 +89,7 @@ authRoute.post('/login', async (c) => {
 
   // biome-ignore lint/suspicious/noExplicitAny: pg record
   const userRecord = users[0] as any
-  const isValid = await verifyPassword(password, userRecord.password_hash)
+  const isValid = await verifyPassword(password, userRecord.password)
 
   if (!isValid) {
     return c.json({ data: null, error: 'Invalid credentials' }, 401)

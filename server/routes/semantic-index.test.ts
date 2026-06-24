@@ -19,7 +19,7 @@ describe('Semantic Index Routes', () => {
     let uid = 1
     try {
       const users = await sql`
-        INSERT INTO users (username, email, password_hash)
+        INSERT INTO users (username, email, password)
         VALUES (${`semantic_${rand}`}, ${`semantic_${rand}@test.com`}, 'hash')
         RETURNING id
       `

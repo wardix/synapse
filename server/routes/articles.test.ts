@@ -26,7 +26,7 @@ describe('Article Routes', () => {
     let uid = 1
     try {
       const users = await sql`
-        INSERT INTO users (username, email, password_hash)
+        INSERT INTO users (username, email, password)
         VALUES (${`article_${rand}`}, ${`article_${rand}@test.com`}, 'hash')
         RETURNING id
       `
