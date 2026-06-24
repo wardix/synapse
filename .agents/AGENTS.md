@@ -212,7 +212,7 @@ All code is formatted and linted by **Biome** (`biome.json`). Do not override th
 
 ### ✅ Do
 
-- **Read PRD.md and ARCHITECTURE.md** before starting any work.
+- **Read PRD.md** before starting any work.
 - **Run migrations** after creating new `.sql` files (`bun run migrate`).
 - **Use parameterized queries** for all SQL operations.
 - **Write TypeScript types** for all data structures — in `shared/types.ts` for API contracts, in `server/types/` for server-only types.
