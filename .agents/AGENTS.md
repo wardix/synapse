@@ -6,9 +6,8 @@
 
 > *Connect your knowledge. Ask naturally. Get answers.*
 
-Before starting any work, read these documents:
-- **PRD**: [PRD.md](file:///Users/wiliam/agy/kb/PRD.md) — Product requirements, user stories, data model, and UI pages
-- **Architecture Plan**: [ARCHITECTURE.md](file:///Users/wiliam/agy/kb/ARCHITECTURE.md) — Tech stack, project structure, database schema, API endpoints, and implementation phases
+Before starting any work, read this document:
+- **PRD**: [PRD.md](../PRD.md) — Product requirements, user stories, data model, and UI pages
 
 ---
 

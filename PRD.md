@@ -354,4 +354,4 @@ Admin buka Chat History
 ---
 
 > [!NOTE]
-> Dokumen ini adalah **living document** yang akan di-update seiring perkembangan project. Untuk detail teknis implementasi, lihat [Architecture Plan](file:///Users/wiliam/.gemini/antigravity-cli/brain/0ca16ba0-3bf5-4923-8096-da482b1ac1d1/architecture_plan.md).
+> Dokumen ini adalah **living document** yang akan di-update seiring perkembangan project. Untuk konvensi teknis dan coding, lihat [AGENTS.md](.agents/AGENTS.md).
