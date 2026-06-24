@@ -4,7 +4,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
     throw new Error('GEMINI_API_KEY is not configured')
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${apiKey}`
+  const url = `https://generativelanguage.googleapis.com/v1/models/text-embedding-004:embedContent?key=${apiKey}`
 
   try {
     const response = await fetch(url, {
