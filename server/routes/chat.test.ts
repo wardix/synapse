@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it, mock } from 'bun:test'
 import * as jose from 'jose'
-import app from '../index'
+import { app } from '../index'
 
 mock.module('../services/rag', () => ({
   askRag: mock(async () => {

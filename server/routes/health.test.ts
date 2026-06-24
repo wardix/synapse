@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import app from '../index'
+import { app } from '../index'
 
 // Register before any fetch calls
 app.get('/api/test-error', () => {

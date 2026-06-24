@@ -87,12 +87,9 @@ if (
 
 const port = Number(process.env.PORT || process.env.SERVER_PORT) || 3000
 
-if (import.meta.main) {
-  console.log(`Server running on port ${port}`)
-  Bun.serve({
-    port,
-    fetch: app.fetch,
-  })
-}
+export { app }
 
-export default app
+export default {
+  port,
+  fetch: app.fetch,
+}
